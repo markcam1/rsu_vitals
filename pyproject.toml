@@ -1,0 +1,19 @@
+[project]
+name = "rsu-vitals"
+version = "0.1.0"
+description = "RSU Risk & Tax Impact Calculator — educational Streamlit app"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit>=1.40",
+    "plotly>=5.0",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "yfinance>=0.2",
+    "python-dateutil>=2.9",
+    "fpdf2>=2.8",
+    "mailchimp-marketing>=3.0",
+    "tenforty>=0.1; sys_platform != 'win32'",
+]
+
+[dependency-groups]
+dev = []
