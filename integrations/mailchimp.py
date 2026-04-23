@@ -40,11 +40,20 @@ def subscribe_email(
             {
                 "email_address": email,
                 "status_if_new": "subscribed",
-                "tags": [{"name": t, "status": "active"} for t in tags],
             },
+        )
+
+        client.lists.update_list_member_tags(
+            list_id,
+            subscriber_hash,
+            {"tags": [{"name": t, "status": "active"} for t in tags]},
         )
         return {"success": True}
 
+    except ApiClientError as e:
+        detail = getattr(e, "text", None) or str(e) or "(no detail)"
+        logger.error("Mailchimp subscribe error: %s", detail)
+        return {"success": False, "error": detail}
     except Exception as e:
         logger.error("Mailchimp subscribe error: %s", e)
         return {"success": False, "error": str(e)}
