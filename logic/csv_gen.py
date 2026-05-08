@@ -89,7 +89,10 @@ def generate_csv_report(
     taxable_base = max(0.0, base_income - deduction)
 
     buf.write(f"SECTION: Federal Tax Bracket Audit - Base Income Only\n")
-    buf.write(f"# Gross Income: ${base_income:,.2f}  |  Standard Deduction: ${deduction:,}  |  Taxable Income: ${taxable_base:,.2f}\n")
+    buf.write(f"Label,Value\n")
+    buf.write(f'Gross Income ($),"{base_income:,.2f}"\n')
+    buf.write(f'Standard Deduction ($),"{deduction:,}"\n')
+    buf.write(f'Taxable Income ($),"{taxable_base:,.2f}"\n')
     pd.DataFrame(base_brackets, columns=[
         "bracket_number", "lower_bound", "upper_bound",
         "rate_pct", "income_in_bracket", "tax_from_bracket", "cumulative_tax",
@@ -110,7 +113,10 @@ def generate_csv_report(
     taxable_total = max(0.0, total_income - deduction)
 
     buf.write(f"SECTION: Federal Tax Bracket Audit - Base + Total RSU Income\n")
-    buf.write(f"# Gross Income: ${total_income:,.2f}  |  Standard Deduction: ${deduction:,}  |  Taxable Income: ${taxable_total:,.2f}\n")
+    buf.write(f"Label,Value\n")
+    buf.write(f'Gross Income ($),"{total_income:,.2f}"\n')
+    buf.write(f'Standard Deduction ($),"{deduction:,}"\n')
+    buf.write(f'Taxable Income ($),"{taxable_total:,.2f}"\n')
     pd.DataFrame(total_brackets, columns=[
         "bracket_number", "lower_bound", "upper_bound",
         "rate_pct", "income_in_bracket", "tax_from_bracket", "cumulative_tax",
