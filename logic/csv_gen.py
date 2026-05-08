@@ -129,17 +129,24 @@ def generate_csv_report(
     federal_base_tax = base_brackets[-1]["cumulative_tax"] if base_brackets else 0
     federal_total_tax = total_brackets[-1]["cumulative_tax"] if total_brackets else 0
 
+    # Recompute from the bracket audit rows above so the summary is internally consistent.
+    incremental_federal  = federal_total_tax - federal_base_tax
+    actual_liability_csv = incremental_federal + tax.get("additional_medicare_tax", 0) + tax["state_tax_on_rsu"]
+    surprise_bill_csv    = actual_liability_csv - tax["statutory_withholding"]
+    net_rsu_csv          = total_rsu_value - actual_liability_csv
+    effective_rate_csv   = (actual_liability_csv / total_rsu_value) if total_rsu_value > 0 else 0.0
+
     _write_section(buf, "Tax Impact Summary", pd.DataFrame([
         {"Line Item": "Federal Tax on Base Income ($)",       "Amount": f"{federal_base_tax:,.2f}", "Notes": "Incremental; RSU not yet included"},
         {"Line Item": "Federal Tax on Base + RSU Income ($)", "Amount": f"{federal_total_tax:,.2f}", "Notes": "Full income including RSUs"},
-        {"Line Item": "Incremental Federal Tax on RSUs ($)",  "Amount": f"{tax['federal_tax_on_rsu']:,.2f}", "Notes": "Row above minus base federal tax"},
+        {"Line Item": "Incremental Federal Tax on RSUs ($)",  "Amount": f"{incremental_federal:,.2f}", "Notes": "Row above minus base federal tax"},
         {"Line Item": "State Tax on RSUs ($)",                "Amount": f"{tax['state_tax_on_rsu']:,.2f}", "Notes": f"{tax['state_rate']*100:.2f}% est. x RSU value"},
         {"Line Item": "Additional Medicare Tax (0.9%) ($)",   "Amount": f"{tax.get('additional_medicare_tax', 0):,.2f}", "Notes": "0.9% on W-2 income above $200K (Single)/$250K (MFJ). Applied in both tenforty and bracket paths."},
-        {"Line Item": "Total Actual Tax Liability ($)",       "Amount": f"{tax['actual_liability']:,.2f}", "Notes": "Federal income tax + Additional Medicare + State on RSU income"},
+        {"Line Item": "Total Actual Tax Liability ($)",       "Amount": f"{actual_liability_csv:,.2f}", "Notes": "Federal income tax + Additional Medicare + State on RSU income"},
         {"Line Item": "Statutory Broker Withholding ($)",     "Amount": f"{tax['statutory_withholding']:,.2f}", "Notes": "22% flat withheld at vest by broker"},
-        {"Line Item": "Surprise Tax Bill / Refund ($)",       "Amount": f"{tax['surprise_bill']:,.2f}", "Notes": "Positive = you owe more at filing; negative = likely refund"},
-        {"Line Item": "Net RSU Value After Tax ($)",          "Amount": f"{total_rsu_value - tax['actual_liability']:,.2f}", "Notes": "Gross RSU value minus actual liability"},
-        {"Line Item": "Effective Tax Rate on RSUs",           "Amount": f"{tax['effective_rate_on_rsu']*100:.2f}%", "Notes": "Total actual liability / gross RSU value"},
+        {"Line Item": "Surprise Tax Bill / Refund ($)",       "Amount": f"{surprise_bill_csv:,.2f}", "Notes": "Positive = you owe more at filing; negative = likely refund"},
+        {"Line Item": "Net RSU Value After Tax ($)",          "Amount": f"{net_rsu_csv:,.2f}", "Notes": "Gross RSU value minus actual liability"},
+        {"Line Item": "Effective Tax Rate on RSUs",           "Amount": f"{effective_rate_csv*100:.2f}%", "Notes": "Total actual liability / gross RSU value"},
         {"Line Item": "Marginal Federal Bracket",             "Amount": f"{tax['marginal_federal_rate']*100:.0f}%", "Notes": "Top bracket hit with RSU income included"},
     ]))
 

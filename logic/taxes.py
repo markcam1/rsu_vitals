@@ -312,6 +312,8 @@ def calculate_rsu_tax_impact(
 
             # marginal_federal_rate from tenforty is the bracket rate (e.g. 0.37)
             marginal = total.get("federal_tax_bracket", calculate_marginal_rate(base_income + rsu_value, filing_status))
+            if marginal > 1.0:  # tenforty returns percent integer (e.g. 35), not decimal
+                marginal /= 100.0
 
             return {
                 "rsu_value":               rsu_value,
